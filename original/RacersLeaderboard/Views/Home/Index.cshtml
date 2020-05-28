@@ -1,0 +1,82 @@
+﻿@model dynamic
+
+@{
+    ViewBag.Title = "iRacing data service";
+
+    var baseUrl = Request.Url.Scheme + "://" + Request.Url.Host;
+    if (!Request.Url.IsDefaultPort)
+    {
+        baseUrl = baseUrl + ":" + Request.Url.Port.ToString();
+    }
+
+}
+
+<style>
+    img {
+        display: block;
+    }
+    
+</style>
+<h2>@ViewBag.Title</h2>
+
+<div class="row">
+    <div class="col-md-12">
+        <p>This service scrapes the iRacing member service to present the data in tables and to provide forum signatures. All data is provided as images so you can easily add to any forum post or your own website.</p>
+        <p>All data is cached and created images are also cached.</p>
+        <p>The service is whitelisted to particular iRacing id's so it doesn't get hammered with heaps of requests.  I guess this means is not really useful to the general iracing public :)</p>
+    </div>    
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3>Signatures</h3>
+        <h4>Badges</h4>
+        <p>Like all the other artefacts on this page, these badges (images) auto-update when your iRating changes (Only road currently support.  others are coming</p>
+        <h5>Road</h5>
+        <p>
+            <span>@($"{baseUrl}/iracingsig/badge/road/<iracingid>, e.g. {baseUrl}/iracingsig/badge/road/59619")</span>
+            <img src="/iracingsig/badge/road/59619" />
+        </p>        
+
+        <h4>Mini</h4>
+        <p>
+            <span>@($"{baseUrl}/iracingsig/mini/<iracingid>, e.g. {baseUrl}/iracingsig/mini/59619")</span>
+            <img src="/iracingsig/mini/59619" />
+        </p>
+        <p>
+            <span>@($"{baseUrl}/iracingsig/srr/<iracingid>, e.g. {baseUrl}/iracingsig/srr/59619")</span>
+            <img src="/iracingsig/srr/59619" />
+        </p>
+        <h4>Full</h4>
+        <p>
+            <span>@($"{baseUrl}/iracingsig/<iracingid>, e.g. {baseUrl}/iracingsig/59619")</span>
+            <img src="/iracingsig/road/59619" />
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h3>Standings</h3>
+        <h4>Statistics</h4>
+        <p>
+            <span>@($"{baseUrl}/stats")</span>
+            <img src="/stats" />
+        </p>        
+        <h4>Ranked by iRating</h4>
+        <p>
+            <span>@($"{baseUrl}/leaderboard")</span>
+            <img src="/leaderboard" />
+        </p>        
+        <h4>Seaon</h4>
+        <p>
+            <span>@($"{baseUrl}/season/<seasonid>, e.g. {baseUrl}/season/1839")</span>
+            <img src="/season/1839" />
+        </p>
+        <h4>Ranked by Time Trial season</h4>
+        <p>
+            <span>@($"{baseUrl}/timetrials/<seasonid>, e.g.{baseUrl}/timetrials/1839")</span>
+            <img src="/timetrials/1839" />
+        </p>
+    </div>
+</div>
