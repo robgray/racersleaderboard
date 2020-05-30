@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +38,13 @@ namespace RacersLeaderboard.Api
                 {
                     Version = "v1",
                     Title = "RacersLeaderboard API",
-                    Description = "RacersLeaderboard charts as images"
+                    Description = "RacersLeaderboard charts as images",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Rob Gray",
+                        Email = string.Empty,
+                        Url = new Uri("http://robertgray.net.au")
+                    }
                 });
             });
         }

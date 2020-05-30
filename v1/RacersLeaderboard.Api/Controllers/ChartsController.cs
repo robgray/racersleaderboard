@@ -19,6 +19,9 @@ namespace RacersLeaderboard.Api.Controllers
             _scraperService = scraperService;
         }
 
+        /// <summary>
+        /// Retrieve a detailed table of stats of all drivers, ranked by highest to lowest iRating
+        /// </summary>
         [HttpGet("stats")]
         public async Task<IActionResult> Stats()
         {
@@ -40,6 +43,9 @@ namespace RacersLeaderboard.Api.Controllers
 			return new ImageResult(image);
         }
 
+        /// <summary>
+        /// Retrieve  a list of all drivers showing just iRating and SR, ordered by highest to lowest iRating
+        /// </summary>
         [HttpGet("leaderboard")]
         public async Task<IActionResult> Leaderboard()
         {

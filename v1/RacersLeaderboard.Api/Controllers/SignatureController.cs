@@ -9,17 +9,15 @@ using RacersLeaderboard.Core.Services;
 
 namespace RacersLeaderboard.Api.Controllers
 {
-    [Route("[controller]")]
+    [Route("signatures")]
 	public class SignatureController : ControllerBase
 	{
-		private IDriverInfoRepository _driverInfoRepository;
         private IScraperService _scraperService;
         private ISignatureImageCreator _signatureCreator;
         private IWhitelister _whitelister;
 		
-		public SignatureController(IDriverInfoRepository driverInfoRepository, IScraperService scraperService, ISignatureImageCreator signatureImageCreator, IWhitelister whitelister)
+		public SignatureController(IScraperService scraperService, ISignatureImageCreator signatureImageCreator, IWhitelister whitelister)
         {
-            _driverInfoRepository = driverInfoRepository;
             _scraperService = scraperService;
             _signatureCreator = signatureImageCreator;
             _whitelister = whitelister;

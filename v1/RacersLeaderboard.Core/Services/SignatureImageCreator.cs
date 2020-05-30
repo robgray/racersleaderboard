@@ -1,10 +1,13 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using RacersLeaderboard.Core.Configuration;
 using RacersLeaderboard.Core.Models;
 using RacersLeaderboard.Core.Storage;
+using RacersLeaderboard.Core.TableBuilders;
 
 namespace RacersLeaderboard.Core.Services
 {
@@ -52,16 +55,9 @@ namespace RacersLeaderboard.Core.Services
 
         public async Task<Image> GetBadge(string filename, DriverStats driver)
         {
-            var blob = await _blobStore.GetBlobReference(StorageContainers.ImageContainer, filename);
-
-            Image badgeBaseImage;
-            using (var imageStream = new MemoryStream())
-            {
-                blob.DownloadToStream(imageStream);
-                badgeBaseImage = Image.FromStream(imageStream);
-			}
-
-	        using (var g = Graphics.FromImage((Image)badgeBaseImage))
+            var signature = await GetImageOrDefault(filename, 250, 40);
+            
+			using (var g = Graphics.FromImage(signature))
 	        {
 	            string fontName = "Verdana";
 
@@ -87,23 +83,16 @@ namespace RacersLeaderboard.Core.Services
 	            g.Flush();
 	        }
 
-	        return badgeBaseImage;
+	        return signature;
 
         }
 
 	    public async Task<Image> GetRoadSignature(DriverStats driver)
 		{
 			string signatureTemplate = driver.GetSignatureTemplate();
+            var signature = await GetImageOrDefault(signatureTemplate, 575, 50);
 
-            var blob = await _blobStore.GetBlobReference(StorageContainers.ImageContainer, signatureTemplate);
-			Image signature;
-            using (var imageStream = new MemoryStream())
-            {
-                blob.DownloadToStream(imageStream);
-                signature = Image.FromStream(imageStream);
-            }
-			
-            using (var g = Graphics.FromImage(signature))
+			using (var g = Graphics.FromImage(signature))
 			{
 				string fontName = "Verdana";
 
@@ -133,7 +122,7 @@ namespace RacersLeaderboard.Core.Services
                 g.FillRectangle(licenseBrush, new RectangleF(263, 18, 50, 23));
                 g.DrawString($"{driver.Class}", font, licenseBrushText, new RectangleF(264, 22, 80, 25));
 
-			    g.DrawString("atomicsimracing.net", smallFont, urlBrushText, new RectangleF(8, 35, 200, 20));
+			    g.DrawString($"{DateTime.Now}", smallFont, urlBrushText, new RectangleF(8, 35, 200, 20));
 
 				g.Flush();
 			}
@@ -143,14 +132,7 @@ namespace RacersLeaderboard.Core.Services
 
 		public async Task<Image> GetRoadMiniSignature(DriverStats driver, string signatureImagepng = "minisig.png", string hexColour = "#00A900")
 		{
-            var blob = await _blobStore.GetBlobReference(StorageContainers.ImageContainer, signatureImagepng);
-            Image signature;
-            using (var imageStream = new MemoryStream())
-            {
-                blob.DownloadToStream(imageStream);
-                signature = Image.FromStream(imageStream);
-            }
-
+            var signature = await GetImageOrDefault(signatureImagepng, 351, 40);
             using (var g = Graphics.FromImage(signature))
 			{
 				string fontName = "Verdana";
@@ -189,15 +171,9 @@ namespace RacersLeaderboard.Core.Services
         public async Task<Image> GetOvalSignature(DriverInfo driver)
 		{
 			string signatureTemplate = driver.OvalLicense.GetSignatureTemplate();
-			var blob = await _blobStore.GetBlobReference(StorageContainers.ImageContainer, signatureTemplate);
-            Image signature;
-            using (var imageStream = new MemoryStream())
-            {
-                blob.DownloadToStream(imageStream);
-				signature = Image.FromStream(imageStream);
-            }
+			var signature = await GetImageOrDefault(signatureTemplate, 575, 40);
 
-            using (var g = Graphics.FromImage((Image)signature))
+			using (var g = Graphics.FromImage((Image)signature))
 			{
 				string fontName = "Verdana";
 
@@ -226,5 +202,33 @@ namespace RacersLeaderboard.Core.Services
 
 			return signature;
 		}
+
+        private Image CreateBaseImage(int width, int height)
+        {
+			var baseImage = new Bitmap(width, height, PixelFormat.Format32bppPArgb);
+			using (var g = Graphics.FromImage(baseImage))
+			{
+				g.FillRectangle(Brushes.White, 0, 0, baseImage.Width, baseImage.Height);
+				g.Flush();
+			}
+
+            return new ImageCreator(baseImage).Create();
+        }
+
+        private async Task<Image> GetImageOrDefault(string filename, int defaultWidth = 0, int defaultHeight = 0)
+        {
+            var exists = await _blobStore.BlobExists(StorageContainers.ImageContainer, $"templates/{filename}");
+            if (exists)
+            {
+                var blob = await _blobStore.GetBlobReference(StorageContainers.ImageContainer, $"templates/{filename}");
+                using (var imageStream = new MemoryStream())
+                {
+                    blob.DownloadToStream(imageStream);
+                    return Image.FromStream(imageStream);
+                }
+			}
+
+            return CreateBaseImage(defaultWidth, defaultHeight);
+        }
 	}
 }
