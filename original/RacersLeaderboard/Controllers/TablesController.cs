@@ -6,7 +6,7 @@ using RacersLeaderboard.Services;
 
 namespace RacersLeaderboard.Controllers
 {    
-	[RoutePrefix("[controller]")]
+	[RoutePrefix("tables")]
     public class TablesController : Controller
     {
         [Route("stats")]
