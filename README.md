@@ -22,5 +22,5 @@ Version 1 is my first step towards modernisation. It's an upgrade to .NET Core 3
 
 Grab the source for the version you want and build it.  You'll need to add two environment variables "**iracing.password**" and "**iracing.username**".  Yeah, no way I was checking those into public source control :).  
 
-You'll also need to adjust the 
+You'll also need to adjust the custid's and they'll need to be people you are "studying" in iracing.  I hope to fix that soon.
 
