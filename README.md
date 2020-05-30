@@ -14,6 +14,8 @@ The original version (in the /original folder) was a single ASP.NET MVC app (in 
 
 The system is limited to only members of my old sim racing club, so it has iracing customer ids' in the configuration and uses these to filter data.  
 
+Original Version is in action at http://asr.robertgray.net.au/
+
 ### Version 1
 
 Version 1 is my first step towards modernisation. It's an upgrade to .NET Core 3.1 and a little better design.  It provides a WebApi to get the charts and signatures and provides Swagger documentation.  It does not have a UI (swagger replaces that function was served by MVC views/pages in the original version)
@@ -22,5 +24,5 @@ Version 1 is my first step towards modernisation. It's an upgrade to .NET Core 3
 
 Grab the source for the version you want and build it.  You'll need to add two environment variables "**iracing.password**" and "**iracing.username**".  Yeah, no way I was checking those into public source control :).  
 
-You'll also need to adjust the 
+You'll also need to adjust the custid's and they'll need to be people you are "studying" in iracing.  I hope to fix that soon.
 
