@@ -8,7 +8,7 @@ using RacersLeaderboard.Core.Models;
 
 namespace RacersLeaderboard.Core.TableBuilders
 {
-    public class TimeTrialTableBuilder : ITableBuilder
+    public class TimeTrialTableBuilder : TableBuilder
     {
         private List<TimeTrialLeaderboard.TimeTrialItem> _timeTrials;
         private Func<string, string> _urlDecoder = (_) => _;
@@ -17,7 +17,7 @@ namespace RacersLeaderboard.Core.TableBuilders
             _timeTrials = timeTrials;
         }
 
-        public ImageCreator Create()
+        public override ImageCreator Create()
         {
 			const float COL_RANK = 5;
             const float COL_NAME = 40;
@@ -40,8 +40,7 @@ namespace RacersLeaderboard.Core.TableBuilders
                 var atomicGreenBrush = new SolidBrush(ColorTranslator.FromHtml($"#00A900"));
                 g.FillRectangle(Brushes.White, 0, 0, board.Width, board.Height);
                 g.FillRectangle(atomicGreenBrush, 0, 0, board.Width, LINE_HEIGHT);
-
-
+                
                 float y = 6;
                 g.DrawString("Name", font, Brushes.White, COL_NAME, y);
                 g.DrawString("Division", font, Brushes.White, COL_DIVISION, y);

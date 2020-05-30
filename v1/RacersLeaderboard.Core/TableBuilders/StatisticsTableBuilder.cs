@@ -8,7 +8,7 @@ using RacersLeaderboard.Core.Models;
 
 namespace RacersLeaderboard.Core.TableBuilders
 {
-    public class StatisticsTableBuilder : ITableBuilder
+    public class StatisticsTableBuilder : TableBuilder
 	{
         private List<DriverStats> _driverStats;
 
@@ -17,7 +17,7 @@ namespace RacersLeaderboard.Core.TableBuilders
             _driverStats = driverStats;
         }
 
-        public ImageCreator Create()
+        public override ImageCreator Create()
         {
 			const float COL_RANK = 5;
 			const float COL_NAME = 40;
@@ -35,14 +35,12 @@ namespace RacersLeaderboard.Core.TableBuilders
 
             _driverStats = _driverStats.OrderByDescending(driver => driver.iRating).ThenByDescending(driver => driver.AvgPointsPerRace).ToList();
 
-			int height = Convert.ToInt32(LINE_HEIGHT * _driverStats.Count() + LINE_HEIGHT);
+            int height = GetHeight(_driverStats.Count);
 			Bitmap board = new Bitmap(925, height, PixelFormat.Format32bppPArgb);
 
 			using (var g = Graphics.FromImage((Image)board))
 			{
-				var font = new Font("Verdana", 10);
-
-				g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
 				g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 				g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
@@ -50,38 +48,43 @@ namespace RacersLeaderboard.Core.TableBuilders
 				g.FillRectangle(Brushes.White, 0, 0, board.Width, board.Height);
 				g.FillRectangle(atomicGreenBrush, 0, 0, board.Width, LINE_HEIGHT);
 
-
-				g.DrawString("Name", font, Brushes.White, COL_NAME, 6);
-				g.DrawString("iRating", font, Brushes.White, COL_IRATING, 6);
-				g.DrawString("SR", font, Brushes.White, COL_SAFETYRATING, 6);
-				g.DrawString("Starts", font, Brushes.White, COL_STARTS, 6);
-				g.DrawString("Wins", font, Brushes.White, COL_WINS, 6);
-				g.DrawString("Wins Rate", font, Brushes.White, COL_WINRATE, 6);
-				g.DrawString("Pts / Race", font, Brushes.White, COL_POINTS_PER_RACE, 6);
-				g.DrawString("Avg. Inc.", font, Brushes.White, COL_AVG_INC, 6);
-				g.DrawString("ttRating", font, Brushes.White, COL_TTRATING, 6);
-				g.DrawString("Laps Lead", font, Brushes.White, COL_LAPS_LEAD, 6);
-
+                float y = 6;
+				g.DrawString("Name", Font, Brushes.White, COL_NAME, y);
+				g.DrawString("iRating", Font, Brushes.White, COL_IRATING, y);
+				g.DrawString("SR", Font, Brushes.White, COL_SAFETYRATING, y);
+				g.DrawString("Starts", Font, Brushes.White, COL_STARTS, y);
+				g.DrawString("Wins", Font, Brushes.White, COL_WINS, y);
+				g.DrawString("Wins Rate", Font, Brushes.White, COL_WINRATE, y);
+				g.DrawString("Pts / Race", Font, Brushes.White, COL_POINTS_PER_RACE, y);
+				g.DrawString("Avg. Inc.", Font, Brushes.White, COL_AVG_INC, y);
+				g.DrawString("ttRating", Font, Brushes.White, COL_TTRATING, y);
+				g.DrawString("Laps Lead", Font, Brushes.White, COL_LAPS_LEAD, y);
+				
 				for (var i = 0; i < _driverStats.Count(); i++)
 				{
 					var driver = _driverStats[i];
-					float y = LINE_HEIGHT + (i * LINE_HEIGHT) + 6;
-					g.DrawString((i + 1).ToString(), font, Brushes.Black, COL_RANK, y);
-					g.DrawString(driver.Driver, font, Brushes.Black, COL_NAME, y);
-					g.DrawString(driver.iRatingText, font, Brushes.Black, COL_IRATING, y);
+                    y += LINE_HEIGHT;
+					g.DrawString((i + 1).ToString(), Font, Brushes.Black, COL_RANK, y);
+					g.DrawString(driver.Driver, Font, Brushes.Black, COL_NAME, y);
+					g.DrawString(driver.iRatingText, Font, Brushes.Black, COL_IRATING, y);
 
 					var licenseBrush = new SolidBrush(ColorTranslator.FromHtml($"#{driver.LicenseColor}"));
 					var licenseBrushText = new SolidBrush(ColorTranslator.FromHtml($"#{driver.LicenseColorForeground}"));
 					g.FillRectangle(licenseBrush, new RectangleF(COL_SAFETYRATING, LINE_HEIGHT + (i * LINE_HEIGHT), 65, LINE_HEIGHT));
-					g.DrawString(driver.Class, font, licenseBrushText, COL_SAFETYRATING + 10, y);
-					g.DrawString(driver.Starts.ToString(), font, Brushes.Black, COL_STARTS, y);
-					g.DrawString(driver.Wins.ToString(), font, Brushes.Black, COL_WINS, y);
-					g.DrawString(driver.WinRate.ToString("P"), font, Brushes.Black, COL_WINRATE, y);
-					g.DrawString(driver.AvgPointsPerRace.ToString(), font, Brushes.Black, COL_POINTS_PER_RACE, y);
-					g.DrawString(driver.AverageIncidents.ToString("F"), font, Brushes.Black, COL_AVG_INC, y);
-					g.DrawString(driver.ttRating.ToString(), font, Brushes.Black, COL_TTRATING, y);
-					g.DrawString(driver.LapsLead.ToString(), font, Brushes.Black, COL_LAPS_LEAD, y); ;
+					g.DrawString(driver.Class, Font, licenseBrushText, COL_SAFETYRATING + 10, y);
+					g.DrawString(driver.Starts.ToString(), Font, Brushes.Black, COL_STARTS, y);
+					g.DrawString(driver.Wins.ToString(), Font, Brushes.Black, COL_WINS, y);
+					g.DrawString(driver.WinRate.ToString("P"), Font, Brushes.Black, COL_WINRATE, y);
+					g.DrawString(driver.AvgPointsPerRace.ToString(), Font, Brushes.Black, COL_POINTS_PER_RACE, y);
+					g.DrawString(driver.AverageIncidents.ToString("F"), Font, Brushes.Black, COL_AVG_INC, y);
+					g.DrawString(driver.ttRating.ToString(), Font, Brushes.Black, COL_TTRATING, y);
+					g.DrawString(driver.LapsLead.ToString(), Font, Brushes.Black, COL_LAPS_LEAD, y); ;
 				}
+
+                var smallFont = new Font("Verdana", 6);
+                y += LINE_HEIGHT;
+                g.DrawString($"Rendered at {DateTime.Now:dd/MM/yyyy HH:mm:ss}", smallFont, Brushes.Black, COL_RANK, y);
+                g.Flush();
 
 				g.Flush();
 			}

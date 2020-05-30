@@ -8,7 +8,7 @@ using RacersLeaderboard.Core.Models;
 
 namespace RacersLeaderboard.Core.TableBuilders
 {
-    public class LeaderboardTableBuilder : ITableBuilder
+    public class LeaderboardTableBuilder : TableBuilder
 	{
         private List<DriverStats> _driverStats;
 
@@ -17,7 +17,7 @@ namespace RacersLeaderboard.Core.TableBuilders
             _driverStats = driverStats;
         }
 
-        public ImageCreator Create()
+        public override ImageCreator Create()
         {
 			const float COL_RANK = 5;
 			const float COL_NAME = 40;
@@ -26,7 +26,7 @@ namespace RacersLeaderboard.Core.TableBuilders
 
 			const float LINE_HEIGHT = 30;
 
-			int height = Convert.ToInt32(LINE_HEIGHT * _driverStats.Count() + LINE_HEIGHT + (LINE_HEIGHT / 1.8));
+            int height = GetHeight(_driverStats.Count);
 			Bitmap board = new Bitmap(400, height, PixelFormat.Format32bppPArgb);
 
 			using (var g = Graphics.FromImage((Image)board))

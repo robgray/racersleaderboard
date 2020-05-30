@@ -15,7 +15,6 @@ namespace RacersLeaderboard.Core.Services
             services.AddSingleton<IWhitelister>(new Whitelister(ids));
             services.AddScoped<ISignatureImageCreator, SignatureImageCreator>();
             services.AddScoped<IScraperService, ScraperService>();
-            services.AddScoped<ILeaderboardImageCreator, LeaderboardImageCreator>();
         }
     }
 }

@@ -12,10 +12,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Schema;
 using CsvHelper;
+using Flurl;
 using Newtonsoft.Json;
 using RacersLeaderboard.Core.Configuration;
 using RacersLeaderboard.Core.Models;
 using RacersLeaderboard.Core.Storage;
+using NullValueHandling = Flurl.NullValueHandling;
 
 namespace RacersLeaderboard.Core.Services
 {
@@ -173,17 +175,44 @@ namespace RacersLeaderboard.Core.Services
 
 		public async Task RebuildStatsFile(CookieCollection cookies, string csvFilename)
 		{
-            // need to watch all ASR drivers, even those who are friends. Or they won't show up.
-		    var url =
-		        "http://members.iracing.com/memberstats/member/DriverStatsData?search=null&friend=-1&watched=59619&recent=-1&country=null&category=2&classlow=-1&classhigh=-1&iratinglow=-1&iratinghigh=-1&ttratinglow=-1&ttratinghigh=-1&avgstartlow=-1&avgstarthigh=-1&avgfinishlow=-1&avgfinishhigh=-1&avgpointslow=-1&avgpointshigh=-1&avgincidentslow=-1&avgincidentshigh=-1&custid=59619&lowerbound=26&upperbound=37&sort=irating&order=desc&active=1";
+            // need to have all ASR drivers as "Studied", even those who are friends. Or they won't show up.
+            var url = @"http://members.iracing.com/memberstats/member/DriverStatsData"
+                .SetQueryParams(new
+                {
+                    search = "null",
+                    friend = -1,
+                    watched =59619,
+                    recent = -1,
+                    country = "null",
+                    category = 2,
+                    classlow = -1,
+                    classhigh = -1,
+                    iratinglow = -1,
+                    iratinghigh = -1,
+                    ttratinglow = 1,
+                    ttratinghigh = -1,
+                    avgstartlow = -1,
+                    avgstarthigh = -1,
+                    avgfinishlow = -1,
+                    avgfinishhigh = -1,
+                    avgpointslow = -1,
+                    avgpointshigh = -1,
+                    avgincidentslow = -1,
+                    avgincidentshigh = -1,
+                    custid = 59619,
+                    lowerbound = 26,
+                    upperbound = 37,
+                    sort = "irating",
+                    order = "desc",
+                    active = 1
+                }, NullValueHandling.NameOnly);
 
             var standingsReq = (HttpWebRequest)WebRequest.Create(url);
 			standingsReq.CookieContainer = new CookieContainer();
 			standingsReq.CookieContainer.Add(cookies);
 
 			var standingsResp = standingsReq.GetResponse();
-
-		    using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream()))
+            using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
 			{
 			    var csvText = sr.ReadToEnd();
                 if (await _blobStore.BlobExists(StorageContainers.CsvContainer, csvFilename))
@@ -196,17 +225,28 @@ namespace RacersLeaderboard.Core.Services
 		}
 
 		public async Task RebuildSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename)
-		{
-			var url =
-				$"http://members.iracing.com/memberstats/member/GetSeasonStandings?format=csv&seasonid={seasonId}&carclassid=-1&clubid=-1&raceweek=-1&division=-1&start=1&end=25&sort=points&order=desc";
+        {
+            var url = "http://members.iracing.com/memberstats/member/GetSeasonStandings"
+                .SetQueryParams(new
+                {
+                    format = "csv",
+                    seasonId,
+                    carclassid = -1,
+                    clubid = -1,
+                    raceweek = -1,
+                    division = -1,
+                    start = 1,
+                    end = 25,
+                    sort = "points",
+                    order = "desc"
+                });
 
-			var standingsReq = (HttpWebRequest)WebRequest.Create(url);
+            var standingsReq = (HttpWebRequest)WebRequest.Create(url);
 			standingsReq.CookieContainer = new CookieContainer();
 			standingsReq.CookieContainer.Add(cookies);
 
 			var standingsResp = await standingsReq.GetResponseAsync();
-
-		    using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
+            using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
 			{
 			    var csvText = sr.ReadToEnd();
                 await _blobStore.UploadBlobString(StorageContainers.CsvContainer, csvFilename, csvText);
