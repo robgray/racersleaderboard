@@ -179,33 +179,37 @@ namespace RacersLeaderboard.Core.Services
             var url = @"http://members.iracing.com/memberstats/member/DriverStatsData"
                 .SetQueryParams(new
                 {
-                    search = "null",
-                    friend = -1,
-                    watched =59619,
-                    recent = -1,
-                    country = "null",
-                    category = 2,
-                    classlow = -1,
-                    classhigh = -1,
-                    iratinglow = -1,
-                    iratinghigh = -1,
-                    ttratinglow = 1,
-                    ttratinghigh = -1,
-                    avgstartlow = -1,
-                    avgstarthigh = -1,
-                    avgfinishlow = -1,
-                    avgfinishhigh = -1,
-                    avgpointslow = -1,
-                    avgpointshigh = -1,
-                    avgincidentslow = -1,
-                    avgincidentshigh = -1,
-                    custid = 59619,
-                    lowerbound = 26,
-                    upperbound = 37,
-                    sort = "irating",
-                    order = "desc",
-                    active = 1
+                    //search = "null",
+                    //custid = 59619, 
+                    friend = -1,    // Use this to get my friends
+                    watched = 59619, // Use this to get my watched.  Together with Friends gets watched and friends. (AND not OR)
+                    category = 2,   // 1 = oval, 2 = road, 3 = oval dirt, 4 = road dirt
+                    //recent = -1,
+                    //country = "null",
+                    //classlow = -1,
+                    //classhigh = -1,
+                    //iratinglow = -1,
+                    //iratinghigh = -1,
+                    //ttratinglow = 1,
+                    //ttratinghigh = -1,
+                    //avgstartlow = -1,
+                    //avgstarthigh = -1,
+                    //avgfinishlow = -1,
+                    //avgfinishhigh = -1,
+                    //avgpointslow = -1,
+                    //avgpointshigh = -1,
+                    //avgincidentslow = -1,
+                    //avgincidentshigh = -1,
+                    //lowerbound = 26,
+                    //upperbound = 37,
+                    //sort = "irating",
+                    //order = "desc",
+                    //active = 1  // -1 = any, 0 = not active, 1 = active
                 }, NullValueHandling.NameOnly);
+
+            // When I move to get everyone's data, don't send through: friend, watched, custid
+            // Getting all the data at once causes a 504 Gateway Timeout. 
+            // To work around this, batch requests based on iRating range. 
 
             var standingsReq = (HttpWebRequest)WebRequest.Create(url);
 			standingsReq.CookieContainer = new CookieContainer();
