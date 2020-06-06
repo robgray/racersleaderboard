@@ -20,7 +20,7 @@ namespace RacersLeaderboard.Services
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
             var username = Environment.GetEnvironmentVariable("iracing.username");
-			var password = Environment.GetEnvironmentVariable("iracing.username");
+			var password = Environment.GetEnvironmentVariable("iracing.password");
 			string loginUrl = "https://members.iracing.com/membersite/Login";
 			string formParams = $"username={username}&password={password}&utcoffset=-600&todaysdate=";
 			
