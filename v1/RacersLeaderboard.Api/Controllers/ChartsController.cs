@@ -101,7 +101,7 @@ namespace RacersLeaderboard.Api.Controllers
 			if ((await _scraperService.IsFileOld(csvFilename, 6.0)) || forceRefresh)
 			{
 				var cookies = await _scraperService.LoginAndGetCookies();
-                await _scraperService.RebuildSeriesStandingFile(cookies, id, csvFilename);
+                await _scraperService.GetSeriesStandingFile(cookies, id, csvFilename);
 			}
 
 		    var standings = await _scraperService.GetSeasonStandings(id);

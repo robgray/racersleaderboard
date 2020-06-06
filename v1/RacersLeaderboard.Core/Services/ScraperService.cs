@@ -27,8 +27,8 @@ namespace RacersLeaderboard.Core.Services
         Task<List<DriverStats>> GetDriverStats();
         Task<List<SeasonStanding>> GetSeasonStandings(int seasonId);
         Task<List<TimeTrialLeaderboard.TimeTrialItem>> GetTimeTrialLeaderboard(int timeTrialId);
-        Task RebuildStatsFile(CookieCollection cookies, string csvFilename);
-        Task RebuildSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename);
+        Task GetStatsFile(CookieCollection cookies, string csvFilename);
+        Task GetSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename);
         Task<bool> IsFileOld(string csvFilename, double ageInHours);
         Task RebuildStatsFileIfOld(string csvFilename, double ageInHours, bool force);
         Task RebuildTTLeaderboardIfOld(string jsonFilename, int seasonid, double ageInHours, bool force);
@@ -173,7 +173,7 @@ namespace RacersLeaderboard.Core.Services
             return leaderboard.Where(l => _whitelister.IsWhitelisted(l.CustId)).ToList();
         }
 
-		public async Task RebuildStatsFile(CookieCollection cookies, string csvFilename)
+		public async Task GetStatsFile(CookieCollection cookies, string csvFilename)
 		{
             // need to have all ASR drivers as "Studied", even those who are friends. Or they won't show up.
             var url = @"http://members.iracing.com/memberstats/member/DriverStatsData"
@@ -228,7 +228,7 @@ namespace RacersLeaderboard.Core.Services
             }
 		}
 
-		public async Task RebuildSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename)
+		public async Task GetSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename)
         {
             var url = "http://members.iracing.com/memberstats/member/GetSeasonStandings"
                 .SetQueryParams(new
@@ -278,7 +278,7 @@ namespace RacersLeaderboard.Core.Services
             if ((await IsFileOld(csvFilename, ageInHours)) || force)
             {
                 var cookies = await LoginAndGetCookies();
-                await RebuildStatsFile(cookies, csvFilename);
+                await GetStatsFile(cookies, csvFilename);
             }
         }
 
