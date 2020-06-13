@@ -1,7 +1,7 @@
 ﻿using System;
 using CsvHelper.Configuration;
 
-namespace RacersLeaderboard.Core.Models
+namespace RacersLeaderboard.Core.Services.iRacing.Models
 {
     
     public sealed class DriverStatsMap : ClassMap<DriverStats>
@@ -87,17 +87,17 @@ namespace RacersLeaderboard.Core.Models
             get
             {
                 if (Class.StartsWith("P"))
-                    return LicenseColors.Pro;
+                    return Constants.LicenseColors.Pro;
                 if (Class.StartsWith("A"))
-                    return LicenseColors.A;
+                    return Constants.LicenseColors.A;
                 if (Class.StartsWith("B"))
-                    return LicenseColors.B;
+                    return Constants.LicenseColors.B;
                 if (Class.StartsWith("C"))
-                    return LicenseColors.C;
+                    return Constants.LicenseColors.C;
                 if (Class.StartsWith("D"))
-                    return LicenseColors.D;
+                    return Constants.LicenseColors.D;
 
-                return LicenseColors.Rookie;
+                return Constants.LicenseColors.Rookie;
             }
         }
 

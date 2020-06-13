@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
-using RacersLeaderboard.Core.Models;
+using RacersLeaderboard.Core.Services.iRacing.Models;
 
 namespace RacersLeaderboard.Core.TableBuilders
 {

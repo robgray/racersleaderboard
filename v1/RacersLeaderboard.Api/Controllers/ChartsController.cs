@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using RacersLeaderboard.Api.ActionResults;
 using RacersLeaderboard.Core;
-using RacersLeaderboard.Core.Models;
 using RacersLeaderboard.Core.Services;
+using RacersLeaderboard.Core.Services.iRacing;
+using RacersLeaderboard.Core.Services.iRacing.Models;
 using RacersLeaderboard.Core.TableBuilders;
 
 namespace RacersLeaderboard.Api.Controllers
@@ -12,7 +13,7 @@ namespace RacersLeaderboard.Api.Controllers
     [Route("[controller]")]
     public class ChartsController : ControllerBase
     {
-        private IScraperService _scraperService;
+        private readonly IScraperService _scraperService;
 
         public ChartsController(IScraperService scraperService)
         {
@@ -79,7 +80,7 @@ namespace RacersLeaderboard.Api.Controllers
 
             var jsonFilename = string.Format(DataFiles.TimeTrialFormat, id);
 
-            await _scraperService.RebuildTTLeaderboardIfOld(jsonFilename, id, 6.0, true);
+            await _scraperService.RebuildTimeTrialLeaderboardIfOld(jsonFilename, id, 6.0, true);
 
             var timeTrials = await _scraperService.GetTimeTrialLeaderboard(id);
 
@@ -100,8 +101,7 @@ namespace RacersLeaderboard.Api.Controllers
 			
 			if ((await _scraperService.IsFileOld(csvFilename, 6.0)) || forceRefresh)
 			{
-				var cookies = await _scraperService.LoginAndGetCookies();
-                await _scraperService.RebuildSeriesStandingFile(cookies, id, csvFilename);
+                await _scraperService.GetSeriesStandingFile(id, csvFilename);
 			}
 
 		    var standings = await _scraperService.GetSeasonStandings(id);

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace RacersLeaderboard.Core.Models
+namespace RacersLeaderboard.Core.Services.iRacing.Models
 {
     public class TimeTrialLeaderboard
     {

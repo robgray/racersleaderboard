@@ -28,7 +28,7 @@ namespace RacersLeaderboard.Api
 
             services.ConfigureSharedModules(new[]
                 {
-                    typeof(StorageModule).Assembly // iChart.Core
+                    typeof(StorageModule).Assembly
                 },
                 Configuration);
 
@@ -58,9 +58,8 @@ namespace RacersLeaderboard.Api
             }
 
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
+            
             app.UseAuthorization();
 
             app.UseSwagger();

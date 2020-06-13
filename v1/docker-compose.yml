@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=str@ngP@ssw@rd
+      - attach_dbs=[{"dbName":"racersleaderboard","dbFiles":["/var/opt/mssql/data/RacersLeaderboard.mdf","/var/opt/mssql/data/RacersLeaderboard.ldf"]}]
+    ports:
+      - "1433:1433"      
+    volumes:
+      - e:/DockerLinux/Volumes/SqlServer:/var/opt/mssql
+  seq: 
+    image: datalust/seq
+    environment:
+      - ACCEPT_EULA=Y      
+    ports:
+      - "80:80"
+      - "5341:5341"
+    volumes:
+      - e:/DockerLinux/Volumes/seq:/data
+  azure-storage:
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+    image: mcr.microsoft.com/azure-storage/azurite

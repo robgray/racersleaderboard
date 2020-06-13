@@ -5,7 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using RacersLeaderboard.Core.Configuration;
-using RacersLeaderboard.Core.Models;
+using RacersLeaderboard.Core.Services.iRacing.Models;
 using RacersLeaderboard.Core.Storage;
 using RacersLeaderboard.Core.TableBuilders;
 

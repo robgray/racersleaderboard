@@ -8,6 +8,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RacersLeaderboard.Api", "RacersLeaderboard.Api\RacersLeaderboard.Api.csproj", "{F92BE10C-474C-40D5-9305-EF303AB5ABA8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Linqpad", "Linqpad", "{0C45B6E5-A00C-4D39-AB11-E19D73C2081C}"
+	ProjectSection(SolutionItems) = preProject
+		linqpad\iracing-data-service.linq = linqpad\iracing-data-service.linq
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

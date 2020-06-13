@@ -6,6 +6,7 @@ using RacersLeaderboard.Api.ActionResults;
 using RacersLeaderboard.Core;
 using RacersLeaderboard.Core.Repositories;
 using RacersLeaderboard.Core.Services;
+using RacersLeaderboard.Core.Services.iRacing;
 
 namespace RacersLeaderboard.Api.Controllers
 {

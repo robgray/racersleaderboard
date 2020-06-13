@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
-using RacersLeaderboard.Core.Models;
+using RacersLeaderboard.Core.Services.iRacing.Models;
 
 namespace RacersLeaderboard.Core.Repositories
 {
