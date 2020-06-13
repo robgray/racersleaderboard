@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30104.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RacersLeaderboard.Core", "RacersLeaderboard.Core\RacersLeaderboard.Core.csproj", "{628D002A-42FD-4BE0-A670-C7BA1DF900BA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RacersLeaderboard.Api", "RacersLeaderboard.Api\RacersLeaderboard.Api.csproj", "{F92BE10C-474C-40D5-9305-EF303AB5ABA8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Linqpad", "Linqpad", "{0C45B6E5-A00C-4D39-AB11-E19D73C2081C}"
+	ProjectSection(SolutionItems) = preProject
+		linqpad\iracing-data-service.linq = linqpad\iracing-data-service.linq
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{628D002A-42FD-4BE0-A670-C7BA1DF900BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{628D002A-42FD-4BE0-A670-C7BA1DF900BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{628D002A-42FD-4BE0-A670-C7BA1DF900BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{628D002A-42FD-4BE0-A670-C7BA1DF900BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F92BE10C-474C-40D5-9305-EF303AB5ABA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F92BE10C-474C-40D5-9305-EF303AB5ABA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F92BE10C-474C-40D5-9305-EF303AB5ABA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F92BE10C-474C-40D5-9305-EF303AB5ABA8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {436F6523-6F03-4C3F-9449-EC968C72ABB9}
+	EndGlobalSection
+EndGlobal
