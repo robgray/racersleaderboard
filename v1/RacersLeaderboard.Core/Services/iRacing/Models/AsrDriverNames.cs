@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace RacersLeaderboard.Core.Models
+namespace RacersLeaderboard.Core.Services.iRacing.Models
 {
     public static class AsrDriverNames
     {

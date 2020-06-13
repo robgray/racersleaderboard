@@ -4,34 +4,29 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Cache;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Schema;
 using CsvHelper;
 using Flurl;
 using Newtonsoft.Json;
 using RacersLeaderboard.Core.Configuration;
-using RacersLeaderboard.Core.Models;
+using RacersLeaderboard.Core.Services.iRacing.Models;
 using RacersLeaderboard.Core.Storage;
 using NullValueHandling = Flurl.NullValueHandling;
 
-namespace RacersLeaderboard.Core.Services
+namespace RacersLeaderboard.Core.Services.iRacing
 {
     public interface IScraperService
     {
-        Task<CookieCollection> LoginAndGetCookies();
         Task<List<DriverStats>> GetDriverStats();
         Task<List<SeasonStanding>> GetSeasonStandings(int seasonId);
         Task<List<TimeTrialLeaderboard.TimeTrialItem>> GetTimeTrialLeaderboard(int timeTrialId);
-        Task RebuildStatsFile(CookieCollection cookies, string csvFilename);
-        Task RebuildSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename);
+        Task GetSeasonStats(string csvFilename);
+        Task GetSeriesStandingFile(int seasonId, string csvFilename);
         Task<bool> IsFileOld(string csvFilename, double ageInHours);
         Task RebuildStatsFileIfOld(string csvFilename, double ageInHours, bool force);
-        Task RebuildTTLeaderboardIfOld(string jsonFilename, int seasonid, double ageInHours, bool force);
+        Task RebuildTimeTrialLeaderboardIfOld(string jsonFilename, int seasonId, double ageInHours, bool force);
     }
 
 	public class ScraperService : IScraperService
@@ -41,6 +36,8 @@ namespace RacersLeaderboard.Core.Services
         private readonly IWhitelister _whitelister;
         private readonly IBlobStore _blobStore;
 
+        private CookieContainer _cookieContainer = null;
+
         public ScraperService(IBlobStore blobStore, IWhitelister whitelister)
         {
             _username = Environment.GetEnvironmentVariable("iracing.username");
@@ -49,13 +46,17 @@ namespace RacersLeaderboard.Core.Services
             _whitelister = whitelister;
         }
 
-        public async Task<CookieCollection> LoginAndGetCookies()
+        public async Task EnsureLoggedIn(bool forceRelogin = false)
         {
-            var loginUri = new Uri("https://members.iracing.com/membersite/Login");
-            var cookieContainer = new CookieContainer();
-            using (var httpClientHandler = new HttpClientHandler { CookieContainer = cookieContainer })
-            using (var client = new HttpClient(httpClientHandler))
+            if (_cookieContainer != null && !forceRelogin)
+                return;
+
+            var loginUri = new Uri(Constants.Urls.Login);
+            _cookieContainer = new CookieContainer();
+            using (var httpClientHandler = new HttpClientHandler {CookieContainer = _cookieContainer})
             {
+                var client = new HttpClient(httpClientHandler);
+
                 client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue() {MaxAge = TimeSpan.Zero};
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/html"));
@@ -65,42 +66,36 @@ namespace RacersLeaderboard.Core.Services
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("image/webp"));
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
 
-                try
-                {
-                    var responseMessage = await client.PostAsync(loginUri, new FormUrlEncodedContent(
-                        new List<KeyValuePair<string, string>>
-                        {
-                            new KeyValuePair<string, string>("username", _username),
-                            new KeyValuePair<string, string>("password", _password),
-                            new KeyValuePair<string, string>("utcoffset", "-600"),
-                            new KeyValuePair<string, string>("todaysdate", "")
-                        }));
-
-                    if (responseMessage.StatusCode == HttpStatusCode.Found)
+                var responseMessage = await client.PostAsync(loginUri, new FormUrlEncodedContent(
+                    new List<KeyValuePair<string, string>>
                     {
-                        var cookies = cookieContainer.GetCookies(loginUri).Cast<Cookie>().ToList();
-                        var cookieCollection = new CookieCollection();
-                        foreach (var cookie in cookies)
-                        {
-                            cookieCollection.Add(cookie);
-                        }
+                        new KeyValuePair<string, string>("username", _username),
+                        new KeyValuePair<string, string>("password", _password),
+                        new KeyValuePair<string, string>("utcoffset", "-600"),
+                        new KeyValuePair<string, string>("todaysdate", "")
+                    }));
 
-                        return cookieCollection;
-                    }
-
-                    throw new Exception("Login to iRacing was unsuccessful");
-                }
-                catch (Exception ex)
+                if (responseMessage.StatusCode == HttpStatusCode.Found &&
+                    responseMessage.Headers.Location.AbsoluteUri == Constants.Urls.MembersiteHome)
                 {
-                    System.Diagnostics.Debug.WriteLine(ex.Message);
-                    throw ex;
+                    var cookies = _cookieContainer.GetCookies(loginUri).Cast<Cookie>().ToList();
+                    var cookieCollection = new CookieCollection();
+                    foreach (var cookie in cookies)
+                    {
+                        cookieCollection.Add(cookie);
+                    }
+                }
+                else
+                {
+                    _cookieContainer = null;
+                    throw new Exception("Login to iRacing was unsuccessful");
                 }
             }
         } 
 	
 		public async Task<List<DriverStats>> GetDriverStats()
 		{
-			List<DriverStats> drivers = new List<DriverStats>();
+			var drivers = new List<DriverStats>();
             var driverStatsData = await _blobStore.GetBlobString(StorageContainers.CsvContainer, DataFiles.DriverStats);
             using (var csv = new CsvReader(new StringReader(driverStatsData), CultureInfo.InvariantCulture))
             {
@@ -117,7 +112,7 @@ namespace RacersLeaderboard.Core.Services
 		
 		public async Task<List<SeasonStanding>> GetSeasonStandings(int seasonId)
 		{
-			List<SeasonStanding> standings = new List<SeasonStanding>();
+			var standings = new List<SeasonStanding>();
             var seasonStandingFileString = await _blobStore.GetBlobString(StorageContainers.CsvContainer, string.Format(DataFiles.SeasonFormat, seasonId));
             using (var csv = new CsvReader(new StringReader(seasonStandingFileString), CultureInfo.InvariantCulture))
 			{
@@ -173,10 +168,9 @@ namespace RacersLeaderboard.Core.Services
             return leaderboard.Where(l => _whitelister.IsWhitelisted(l.CustId)).ToList();
         }
 
-		public async Task RebuildStatsFile(CookieCollection cookies, string csvFilename)
-		{
-            // need to have all ASR drivers as "Studied", even those who are friends. Or they won't show up.
-            var url = @"http://members.iracing.com/memberstats/member/DriverStatsData"
+        public async Task GetSeasonStats(string csvFilename)
+        {
+            var url = Constants.Urls.DriverStatsData
                 .SetQueryParams(new
                 {
                     //search = "null",
@@ -211,26 +205,12 @@ namespace RacersLeaderboard.Core.Services
             // Getting all the data at once causes a 504 Gateway Timeout. 
             // To work around this, batch requests based on iRating range. 
 
-            var standingsReq = (HttpWebRequest)WebRequest.Create(url);
-			standingsReq.CookieContainer = new CookieContainer();
-			standingsReq.CookieContainer.Add(cookies);
+            await GetGenericFileDataAndSaveToBlobStorage(url, csvFilename);
+        }
 
-			var standingsResp = standingsReq.GetResponse();
-            using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
-			{
-			    var csvText = sr.ReadToEnd();
-                if (await _blobStore.BlobExists(StorageContainers.CsvContainer, csvFilename))
-                {
-                    await _blobStore.DeleteBlob(StorageContainers.CsvContainer, csvFilename);
-                }
-
-                await _blobStore.UploadBlobString(StorageContainers.CsvContainer, csvFilename, csvText);
-            }
-		}
-
-		public async Task RebuildSeriesStandingFile(CookieCollection cookies, int seasonId, string csvFilename)
+        public async Task GetSeriesStandingFile(int seasonId, string csvFilename)
         {
-            var url = "http://members.iracing.com/memberstats/member/GetSeasonStandings"
+            var url = Constants.Urls.SeasonStandings
                 .SetQueryParams(new
                 {
                     format = "csv",
@@ -245,19 +225,10 @@ namespace RacersLeaderboard.Core.Services
                     order = "desc"
                 });
 
-            var standingsReq = (HttpWebRequest)WebRequest.Create(url);
-			standingsReq.CookieContainer = new CookieContainer();
-			standingsReq.CookieContainer.Add(cookies);
+            await GetGenericFileDataAndSaveToBlobStorage(url, csvFilename);
+        }
 
-			var standingsResp = await standingsReq.GetResponseAsync();
-            using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
-			{
-			    var csvText = sr.ReadToEnd();
-                await _blobStore.UploadBlobString(StorageContainers.CsvContainer, csvFilename, csvText);
-            }
-		}
-
-		public async Task<bool> IsFileOld(string csvFilename, double ageInHours)
+        public async Task<bool> IsFileOld(string csvFilename, double ageInHours)
         {
             var refreshFile = true;
 			var exists = await _blobStore.BlobExists(StorageContainers.CsvContainer, csvFilename);
@@ -277,50 +248,80 @@ namespace RacersLeaderboard.Core.Services
 	    {
             if ((await IsFileOld(csvFilename, ageInHours)) || force)
             {
-                var cookies = await LoginAndGetCookies();
-                await RebuildStatsFile(cookies, csvFilename);
+                await GetSeasonStats(csvFilename);
             }
         }
 
-	    public async Task RebuildTTLeaderboardIfOld(string jsonFilename, int seasonid, double ageInHours, bool force)
+	    public async Task RebuildTimeTrialLeaderboardIfOld(string jsonFilename, int seasonId, double ageInHours, bool force)
 	    {
 	        if ((await IsFileOld(jsonFilename, ageInHours)) || force)
 	        {
-	            var cookies = await LoginAndGetCookies();
-	            await GetTTSeasonLeaderboard(cookies, seasonid, jsonFilename);
+                await GetTimeTrialSeasonLeaderboard(seasonId, jsonFilename);
 	        }
         }
 
-	    public async Task GetTTSeasonLeaderboard(CookieCollection cookies, int seasonId, string jsonFilename)
-	    {	        
-	        string ttUrl = "http://members.iracing.com/memberstats/member/GetSeasonTTStandings";
-
-	        var standingsReq = (HttpWebRequest)WebRequest.Create(ttUrl);            
-	        standingsReq.CookieContainer = new CookieContainer();
-	        standingsReq.CookieContainer.Add(cookies);
-	        
-	        standingsReq.Headers["Pragma"] = "no-cache";
-	        standingsReq.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
-	        standingsReq.Accept = "*/*";
-	        standingsReq.ContentType = "application/x-www-form-urlencoded";            
-	        standingsReq.Method = "POST";
-
-
-	        var content = $"seasonid={seasonId}&clubid=-1&carclassid=4&raceweek=-1&division=-1&sort=points&order=desc&start=1&end=100000";
-	        var postStream = standingsReq.GetRequestStream();
-            
-	        var formContentBytes = new ASCIIEncoding().GetBytes(content);
-            postStream.Write(formContentBytes,0, formContentBytes.Length);
-	        postStream.Flush();
-	        postStream.Close();
-            
-            var standingsResp = standingsReq.GetResponse();
-
-            using (var sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
+	    public async Task GetTimeTrialSeasonLeaderboard(int seasonId, string jsonFilename)
+	    {
+            var standingsUri = new Uri(Constants.Urls.SeasonTimeTrialStandings);
+            var cookieContainer = new CookieContainer();
+            using (var httpClientHandler = new HttpClientHandler { CookieContainer = cookieContainer })
             {
-                var jsonText = sr.ReadToEnd();
-                await _blobStore.UploadBlobString(StorageContainers.CsvContainer, jsonFilename, jsonText);
+                var client = new HttpClient(httpClientHandler);
+
+                client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue() { MaxAge = TimeSpan.Zero };
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+                
+                var responseMessage = await client.PostAsync(standingsUri, new FormUrlEncodedContent(
+                    new List<KeyValuePair<string, string>>
+                    {
+                        new KeyValuePair<string, string>("seasonid", seasonId.ToString()),
+                        new KeyValuePair<string, string>("club", "-1"),
+                        new KeyValuePair<string, string>("carclassid", "4"),
+                        new KeyValuePair<string, string>("raceweek", "-1"),
+                        new KeyValuePair<string, string>("division", "-1"),
+                        new KeyValuePair<string, string>("sort", "points"),
+                        new KeyValuePair<string, string>("order", "desc"),
+                        new KeyValuePair<string, string>("start", "1"),
+                        new KeyValuePair<string, string>("end", "100000"),
+                    }));
+                
+                using (var sr = new StreamReader(await responseMessage.Content.ReadAsStreamAsync()))
+                {
+                    var jsonText = await sr.ReadToEndAsync();
+                    await _blobStore.UploadBlobString(StorageContainers.CsvContainer, jsonFilename, jsonText);
+                }
             }
         }
-	}
+        
+        private async Task GetGenericFileDataAndSaveToBlobStorage(string url, string destinationFile)
+        {
+            await EnsureLoggedIn();
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.CookieContainer = _cookieContainer;
+            
+            var standingsResp = await request.GetResponseAsync();
+            using (StreamReader sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
+            {
+                var csvText = sr.ReadToEnd();
+                await _blobStore.UploadBlobString(StorageContainers.CsvContainer, destinationFile, csvText);
+            }
+        }
+
+        private async Task PostGenericFileDataAndSaveToBlobStorage(string url, string destinationFile)
+        {
+            await EnsureLoggedIn();
+
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.CookieContainer = _cookieContainer;
+            
+            var standingsResp = await request.GetResponseAsync();
+            using (var sr = new StreamReader(standingsResp.GetResponseStream() ?? throw new InvalidOperationException()))
+            {
+                var csvText = await sr.ReadToEndAsync();
+                await _blobStore.UploadBlobString(StorageContainers.CsvContainer, destinationFile, csvText);
+            }
+        }
+    }
 }

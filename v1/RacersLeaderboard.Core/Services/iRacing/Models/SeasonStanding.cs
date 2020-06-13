@@ -1,6 +1,6 @@
 ﻿using CsvHelper.Configuration;
 
-namespace RacersLeaderboard.Core.Models
+namespace RacersLeaderboard.Core.Services.iRacing.Models
 {
 	public class SeasonStandingMap : ClassMap<SeasonStanding>
 	{

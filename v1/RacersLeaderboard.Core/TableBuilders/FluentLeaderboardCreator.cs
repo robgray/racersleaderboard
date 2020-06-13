@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using RacersLeaderboard.Core.Models;
+using RacersLeaderboard.Core.Services.iRacing.Models;
 
 namespace RacersLeaderboard.Core.TableBuilders
 {

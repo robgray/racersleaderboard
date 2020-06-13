@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RacersLeaderboard.Core.Models
+namespace RacersLeaderboard.Core.Services.iRacing.Models
 {
 	public class DriverInfo
 	{
@@ -29,9 +29,9 @@ namespace RacersLeaderboard.Core.Models
 		// licenses always comes back with two items. 
 		// 0 = Oval
 		// 1 = Road
-		public License RoadLicense => licenses[1];
+		public License RoadLicense => licenses[Constants.Categories.Road];
 
-		public License OvalLicense => licenses[0];
+		public License OvalLicense => licenses[Constants.Categories.Oval];
 
 		
 	}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RacersLeaderboard.Core.Configuration;
+using RacersLeaderboard.Core.Services.iRacing;
 
 namespace RacersLeaderboard.Core.Services
 {
